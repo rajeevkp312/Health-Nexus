@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Admin API</title>
+</head>
+<body>
+    <h1>Test Admin API</h1>
+    <button onclick="testHealth()">Test Health Endpoint</button>
+    <button onclick="testAdminRoute()">Test Admin Route</button>
+    <button onclick="testAdminLogin()">Test Admin Login</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        async function testHealth() {
+            try {
+                const response = await fetch('http://localhost:8000/health');
+                const data = await response.json();
+                results.innerHTML += '<p><strong>Health:</strong> ' + JSON.stringify(data) + '</p>';
+            } catch (error) {
+                results.innerHTML += '<p><strong>Health Error:</strong> ' + error.message + '</p>';
+            }
+        }
+        
+        async function testAdminRoute() {
+            try {
+                const response = await fetch('http://localhost:8000/api/admin/test');
+                const data = await response.json();
+                results.innerHTML += '<p><strong>Admin Test:</strong> ' + JSON.stringify(data) + '</p>';
+            } catch (error) {
+                results.innerHTML += '<p><strong>Admin Test Error:</strong> ' + error.message + '</p>';
+            }
+        }
+        
+        async function testAdminLogin() {
+            try {
+                const response = await fetch('http://localhost:8000/api/admin/log', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'rkp@zoho.com',
+                        password: '1234'
+                    })
+                });
+                const data = await response.json();
+                results.innerHTML += '<p><strong>Admin Login:</strong> ' + JSON.stringify(data) + '</p>';
+            } catch (error) {
+                results.innerHTML += '<p><strong>Admin Login Error:</strong> ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>

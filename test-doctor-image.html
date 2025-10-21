@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Doctor Image</title>
+</head>
+<body>
+    <h1>Doctor Image Test</h1>
+    <div id="result"></div>
+    
+    <script>
+        async function testDoctorAPI() {
+            try {
+                const response = await fetch('http://localhost:8000/api/admin/doctors');
+                const data = await response.json();
+                
+                console.log('API Response:', data);
+                
+                if (data.msg === "Success") {
+                    const doctors = data.value || data.doctors || [];
+                    const resultDiv = document.getElementById('result');
+                    
+                    doctors.forEach(doctor => {
+                        const doctorDiv = document.createElement('div');
+                        doctorDiv.style.border = '1px solid #ccc';
+                        doctorDiv.style.margin = '10px';
+                        doctorDiv.style.padding = '10px';
+                        
+                        doctorDiv.innerHTML = `
+                            <h3>${doctor.name}</h3>
+                            <p><strong>ID:</strong> ${doctor._id}</p>
+                            <p><strong>Email:</strong> ${doctor.email}</p>
+                            <p><strong>Image Field:</strong> ${doctor.image ? 'Present' : 'Not Present'}</p>
+                            <p><strong>Image Type:</strong> ${doctor.image ? 
+                                (doctor.image.startsWith('data:image/') ? 'Base64' : 'File Path') : 
+                                'None'}</p>
+                            <p><strong>Image Preview:</strong></p>
+                            ${doctor.image ? 
+                                `<img src="${doctor.image.startsWith('data:image/') ? doctor.image : 'http://localhost:8000/uploads/' + doctor.image}" 
+                                     style="width: 100px; height: 100px; object-fit: cover;" 
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                 <div style="display:none; width: 100px; height: 100px; background: #ddd; display: flex; align-items: center; justify-content: center;">No Image</div>` : 
+                                '<div style="width: 100px; height: 100px; background: #ddd; display: flex; align-items: center; justify-content: center;">No Image</div>'
+                            }
+                        `;
+                        
+                        resultDiv.appendChild(doctorDiv);
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+            }
+        }
+        
+        // Run test when page loads
+        window.onload = testDoctorAPI;
+    </script>
+</body>
+</html>

@@ -1,0 +1,228 @@
+/* Global text visibility fixes for HealthNexus */
+
+/* Fix all input elements */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="tel"],
+input[type="url"],
+input[type="search"] {
+  color: #1f2937 !important; /* text-gray-900 */
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder,
+input[type="number"]::placeholder,
+input[type="date"]::placeholder,
+input[type="time"]::placeholder,
+input[type="tel"]::placeholder,
+input[type="url"]::placeholder,
+input[type="search"]::placeholder {
+  color: #6b7280 !important; /* text-gray-500 */
+}
+
+/* Fix all textarea elements */
+textarea {
+  color: #1f2937 !important; /* text-gray-900 */
+}
+
+textarea::placeholder {
+  color: #6b7280 !important; /* text-gray-500 */
+}
+
+/* Fix all select elements */
+select {
+  color: #1f2937 !important; /* text-gray-900 */
+  background-color: white !important;
+}
+
+/* Fix all option elements */
+option {
+  color: #1f2937 !important; /* text-gray-900 */
+  background-color: white !important;
+}
+
+/* Fix form-control class (Bootstrap style) */
+.form-control {
+  color: #1f2937 !important; /* text-gray-900 */
+  background-color: white !important;
+}
+
+.form-control::placeholder {
+  color: #6b7280 !important; /* text-gray-500 */
+}
+
+/* Fix headings and text in admin panels */
+h1, h2, h3, h4, h5, h6 {
+  color: #1f2937 !important; /* text-gray-900 */
+}
+
+/* Fix labels */
+label {
+  color: #374151 !important; /* text-gray-700 */
+}
+
+/* Fix paragraph text in boxes */
+.bg-white p,
+.bg-gray-50 p,
+.bg-gray-100 p {
+  color: #1f2937 !important; /* text-gray-900 */
+}
+
+/* Fix text in cards and containers */
+.border p,
+.rounded-lg p,
+.shadow p {
+  color: #1f2937 !important; /* text-gray-900 */
+}
+
+/* Specific fixes for admin components */
+.admin-text {
+  color: #1f2937 !important; /* text-gray-900 */
+  font-weight: 500 !important;
+}
+
+/* Fix dropdown menus */
+.dropdown-menu {
+  background-color: white !important;
+}
+
+.dropdown-menu option {
+  color: #1f2937 !important; /* text-gray-900 */
+  background-color: white !important;
+}
+
+/* Fix modal and popup text */
+.modal-content,
+.popup-content {
+  color: #1f2937 !important; /* text-gray-900 */
+}
+
+/* Fix button text (ensure it remains visible) */
+button {
+  font-weight: 500 !important;
+}
+
+/* Fix table text */
+table td,
+table th {
+  color: #1f2937 !important; /* text-gray-900 */
+}
+
+/* Fix list items */
+li {
+  color: #1f2937 !important; /* text-gray-900 */
+}
+
+/* Fix span elements in admin panels only */
+.admin-root span {
+  color: inherit !important;
+}
+
+/* Ensure proper contrast for badges and tags */
+.badge,
+.tag {
+  font-weight: 600 !important;
+}
+
+/* News ticker scrolling animation */
+@keyframes scroll {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 12s linear infinite;
+  display: inline-block;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 640px) {
+  .animate-scroll {
+    animation: scroll 10s linear infinite;
+  }
+}
+
+/* Doctor card specific text visibility fixes */
+.card-doctor h3,
+.card-doctor p,
+.card-doctor span,
+.card-doctor div {
+  color: #000000 !important;
+}
+
+/* Doctor card email, phone, location text */
+.card-doctor .text-xs,
+.card-doctor .text-sm,
+.card-doctor .text-lg {
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+/* Doctor specialty text */
+.card-doctor .text-blue-600 {
+  color: #1d4ed8 !important;
+  font-weight: 700 !important;
+}
+
+/* Doctor consultation fee amount */
+.card-doctor .text-blue-800 {
+  color: #1e40af !important;
+  font-weight: 700 !important;
+}
+
+/* Force all text in doctor cards to be black */
+#doctors .card-doctor * {
+  color: #000000 !important;
+}
+
+/* Preserve specific colored elements */
+#doctors .card-doctor .text-blue-600 {
+  color: #1d4ed8 !important;
+}
+
+#doctors .card-doctor .text-blue-800 {
+  color: #1e40af !important;
+}
+#doctors .card-doctor .text-yellow-500 {
+  color: #eab308 !important;
+}
+
+/*Doctor card contact info */
+  #doctors .card-doctor [class*="text-"] {
+    color: #000000 !important;
+    font-weight: 600 !important;
+  }
+
+#home .hero-title {
+  color: #ffffff !important;
+}
+#home .hero-title .hero-priority {
+  color: #FBBF24 !important; /* Yellow for "Our Priority" */
+}
+#home .hero-title .hero-lead {
+  color: #ffffff !important;
+}
+
+#home .hero-paragraph {
+  color: #ffffff !important; /* White paragraph text */
+}
+
+#contact .text-success {
+  color: #16a34a !important;
+}
+
+/* News ticker overrides */
+#home .news-ticker-text,
+#home .news-ticker-text * {
+  color: #ffffff !important;
+}
+

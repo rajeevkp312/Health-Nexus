@@ -1,0 +1,71 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Node modules (root and all packages)
+node_modules/
+**/node_modules/
+
+# Build outputs and caches
+dist/
+build/
+**/dist/
+**/build/
+.next/
+out/
+.cache/
+.vite/
+**/.vite/
+*.tsbuildinfo
+
+# Test/coverage
+coverage/
+.nyc_output/
+
+# Environment files (keep only samples)
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+
+# Local/dev overrides
+*.local
+*.local.*
+.env.local
+.env.development.local
+
+# User uploads and runtime data
+uploads/
+backend/uploads/
+**/uploads/
+*.sqlite
+*.db
+
+# Tooling caches
+.eslintcache
+.stylelintcache
+.parcel-cache
+.turbo/
+.npm/
+.temp/
+tmp/
+temp/
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Hosting platform dirs (kept out of git unless you intentionally commit configs)
+.vercel/
