@@ -16,15 +16,20 @@ const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
 const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
 const smtpTransporter = (smtpUser && smtpPass) ? nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false,
+    requireTLS: true,
     auth: { user: smtpUser, pass: smtpPass },
     pool: true,
     maxConnections: 5,
     maxMessages: 100,
-    connectionTimeout: 10000,
-    greetingTimeout: 5000,
-    socketTimeout: 10000
+    connectionTimeout: 15000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+    tls: {
+        ciphers: 'SSLv3',
+        rejectUnauthorized: false
+    }
 }) : null;
 
 // Generate 6-digit OTP
