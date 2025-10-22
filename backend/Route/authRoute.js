@@ -15,11 +15,16 @@ const resend = RESEND_KEY ? new Resend(RESEND_KEY) : null;
 const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
 const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
 const smtpTransporter = (smtpUser && smtpPass) ? nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: smtpUser,
-        pass: smtpPass
-    }
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: { user: smtpUser, pass: smtpPass },
+    pool: true,
+    maxConnections: 5,
+    maxMessages: 100,
+    connectionTimeout: 10000,
+    greetingTimeout: 5000,
+    socketTimeout: 10000
 }) : null;
 
 // Generate 6-digit OTP
@@ -66,7 +71,9 @@ const sendOTPEmail = async (email, otp, type) => {
                 from: `HealthNexus <${smtpUser}>`,
                 to: email,
                 subject,
-                html
+                html,
+                priority: 'high',
+                headers: { 'X-Priority': '1', 'X-MSMail-Priority': 'High' }
             });
             console.log(`✅ Email sent successfully to ${email} via Nodemailer`);
             return true;
@@ -102,6 +109,9 @@ const sendOTPEmail = async (email, otp, type) => {
             return true; // allow flow to continue in development
         }
     } else {
+        if (process.env.NODE_ENV === 'production') {
+            return false;
+        }
         console.warn('Resend API key not set; using console fallback for OTP.');
         console.log(`📧 EMAIL FALLBACK - OTP for ${email}: ${otp}`);
         console.log(`🔔 Please use this OTP code: ${otp}`);
@@ -131,6 +141,14 @@ router.post('/register', async (req, res) => {
             });
         }
 
+        // In production, ensure email provider is configured
+        if (process.env.NODE_ENV === 'production' && !smtpTransporter && !resend) {
+            return res.status(500).json({
+                success: false,
+                message: 'Email service not configured on server'
+            });
+        }
+
         // Generate OTP
         const otp = generateOTP();
 
@@ -141,16 +159,9 @@ router.post('/register', async (req, res) => {
             type: 'registration'
         });
 
-        // Send OTP email
-        const emailSent = await sendOTPEmail(email, otp, 'registration');
+        // Send OTP email (non-blocking)
+        sendOTPEmail(email, otp, 'registration').catch((e) => console.error('OTP email error:', e));
         
-        if (!emailSent) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to send verification email'
-            });
-        }
-
         res.status(200).json({
             success: true,
             message: 'OTP sent to your email. Please verify to complete registration.',
@@ -323,6 +334,14 @@ router.post('/forgot-password', async (req, res) => {
             });
         }
 
+        // In production, ensure email provider is configured
+        if (process.env.NODE_ENV === 'production' && !smtpTransporter && !resend) {
+            return res.status(500).json({
+                success: false,
+                message: 'Email service not configured on server'
+            });
+        }
+
         // Generate OTP
         const otp = generateOTP();
 
@@ -333,16 +352,9 @@ router.post('/forgot-password', async (req, res) => {
             type: 'forgot_password'
         });
 
-        // Send OTP email
-        const emailSent = await sendOTPEmail(email, otp, 'forgot_password');
+        // Send OTP email (non-blocking)
+        sendOTPEmail(email, otp, 'forgot_password').catch((e) => console.error('Reset OTP email error:', e));
         
-        if (!emailSent) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to send reset email'
-            });
-        }
-
         res.status(200).json({
             success: true,
             message: 'Password reset OTP sent to your email'
