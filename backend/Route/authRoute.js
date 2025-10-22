@@ -4,14 +4,21 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
 const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 const User = require('../Model/userModel');
 const OTP = require('../Model/otpModel');
+
+// SendGrid HTTP API configuration (works on Render)
+const SENDGRID_KEY = process.env.SENDGRID_API_KEY;
+if (SENDGRID_KEY) {
+    sgMail.setApiKey(SENDGRID_KEY);
+}
 
 // Resend configuration
 const RESEND_KEY = process.env.RESEND_API_KEY || process.env.RESEND_KEY;
 const resend = RESEND_KEY ? new Resend(RESEND_KEY) : null;
 
-// Nodemailer SMTP configuration (uses Gmail by default)
+// Nodemailer SMTP configuration (works locally, blocked on Render)
 const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
 const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
 const smtpTransporter = (smtpUser && smtpPass) ? nodemailer.createTransport({
@@ -25,11 +32,7 @@ const smtpTransporter = (smtpUser && smtpPass) ? nodemailer.createTransport({
     maxMessages: 100,
     connectionTimeout: 15000,
     greetingTimeout: 10000,
-    socketTimeout: 15000,
-    tls: {
-        ciphers: 'SSLv3',
-        rejectUnauthorized: false
-    }
+    socketTimeout: 15000
 }) : null;
 
 // Generate 6-digit OTP
@@ -69,7 +72,26 @@ const sendOTPEmail = async (email, otp, type) => {
         </div>
     `;
 
-    // 1) Try Nodemailer SMTP if configured
+    // 1) Try SendGrid HTTP API first (works on Render)
+    if (SENDGRID_KEY) {
+        try {
+            await sgMail.send({
+                from: {
+                    email: process.env.SMTP_USER || 'rajeevkumarpandit2002@gmail.com',
+                    name: 'HealthNexus'
+                },
+                to: email,
+                subject,
+                html
+            });
+            console.log(`✅ Email sent successfully to ${email} via SendGrid HTTP API`);
+            return true;
+        } catch (sgError) {
+            console.error('❌ SendGrid HTTP API error:', sgError.response?.body || sgError);
+        }
+    }
+
+    // 2) Try Nodemailer SMTP if configured (works locally, blocked on Render)
     if (smtpTransporter) {
         try {
             await smtpTransporter.sendMail({
@@ -80,14 +102,14 @@ const sendOTPEmail = async (email, otp, type) => {
                 priority: 'high',
                 headers: { 'X-Priority': '1', 'X-MSMail-Priority': 'High' }
             });
-            console.log(`✅ Email sent successfully to ${email} via Nodemailer`);
+            console.log(`✅ Email sent successfully to ${email} via Gmail SMTP`);
             return true;
         } catch (smtpError) {
-            console.error('❌ Nodemailer SMTP error:', smtpError);
+            console.error('❌ Nodemailer SMTP error:', smtpError.message);
         }
     }
 
-    // 2) Fallback to Resend (only if API key provided)
+    // 3) Fallback to Resend (only if API key provided)
     if (resend) {
         try {
             const { data, error } = await resend.emails.send({
