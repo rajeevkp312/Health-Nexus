@@ -5,6 +5,10 @@ import { EmergencyCallPopup } from './EmergencyCallPopup';
 import { BookAppointmentPopup } from './BookAppointmentPopup';
 import { FindDoctorPopup } from './FindDoctorPopup';
 import { NewsTicker } from './NewsTicker';
+import logo2 from '@/assets/logo2.png';
+import bg21 from '@/assets/bg21.png';
+import bg1 from '@/assets/bg1.png';
+import bg3 from '@/assets/bg3.png';
 
 export function HeroSection({ onLoginClick, onBookAppointmentClick }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -13,9 +17,9 @@ export function HeroSection({ onLoginClick, onBookAppointmentClick }) {
   const [isBookAppointmentOpen, setIsBookAppointmentOpen] = useState(false);
   const [isFindDoctorOpen, setIsFindDoctorOpen] = useState(false);
   const heroImages = [
-    '/src/assets/bg21.png',
-    '/src/assets/bg1.png',
-    '/src/assets/bg3.png'
+    bg21,
+    bg1,
+    bg3
   ];
 
   useEffect(() => {
@@ -37,7 +41,7 @@ export function HeroSection({ onLoginClick, onBookAppointmentClick }) {
             {/* Logo */}
             <div className="flex items-center flex-shrink-0">
               <img 
-                src="/src/assets/logo2.png" 
+                src={logo2}
                 alt="HealthNexus Logo" 
                 className="h-12 w-auto mr-2"
               />

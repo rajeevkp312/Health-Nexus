@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, EyeOff, User, Mail, Phone, Lock, Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import logo2 from '@/assets/logo2.png';
 
 export function LoginModal({ isOpen, onClose }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -65,7 +66,7 @@ export function LoginModal({ isOpen, onClose }) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-center justify-center">
             <img 
-              src="/src/assets/logo2.png" 
+              src={logo2} 
               alt="HealthNexus Logo" 
               className="h-10 w-auto"
             />

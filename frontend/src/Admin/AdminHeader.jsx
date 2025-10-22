@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Menu, Bell, Search, User, LogOut, Settings, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import logo2 from '@/assets/logo2.png';
 
 export function AdminHeader({ onMenuClick, onLogout }) {
   const adminEmail = localStorage.getItem('admin') || 'admin@gmail.com';
@@ -89,7 +90,7 @@ export function AdminHeader({ onMenuClick, onLogout }) {
           
           <div className="flex items-center space-x-3">
             <img 
-              src="/src/assets/logo2.png" 
+              src={logo2} 
               alt="HealthNexus Logo" 
               className="h-10 w-auto"
             />

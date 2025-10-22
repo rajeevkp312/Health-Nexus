@@ -9,6 +9,7 @@ import {
   Linkedin,
   Heart
 } from 'lucide-react';
+import logo1 from '@/assets/logo1.png';
 
 export function Footer() {
   const quickLinks = [
@@ -42,7 +43,7 @@ export function Footer() {
           <div className="col-span-1 md:col-span-2 lg:col-span-1">
             <div className="flex items-center mb-4">
               <img 
-                src="/src/assets/logo1.png" 
+                src={logo1} 
                 alt="HealthNexus Logo" 
                 className="h-16 w-auto mr-3"
               />

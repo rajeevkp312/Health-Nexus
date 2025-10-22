@@ -12,6 +12,7 @@ import {
   KeyRound
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import logo2 from '@/assets/logo2.png';
 
 export function AdminLogin() {
   const navigate = useNavigate();
@@ -146,7 +147,7 @@ export function AdminLogin() {
           <div className="flex items-center justify-center mb-6">
             <div className="bg-white/10 backdrop-blur-md rounded-full p-4">
               <img 
-                src="/src/assets/logo2.png" 
+                src={logo2} 
                 alt="HealthNexus Logo" 
                 className="h-12 w-auto"
               />
