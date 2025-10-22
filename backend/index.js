@@ -1,25 +1,5 @@
-// const express=require ('express');
-// const mongoose=require('mongoose');
-// const adminRoute=require('./Route/adminRoute');
-// const doctorRoute=require('./Route/doctorRoute');
 
-// const adminModel = require('../models/adminModel');
-
-// const cors=require('cors');
-// // const { default: Addoc } = require('../frontend/src/Admin/Addoc');
-// const app=express();
-// const port=8000;
-// mongoose.connect('mongodb://127.0.0.1:27017/healthnexus')
-// .then(()=>console.log("mongo connected success 👌"))
-// .catch((err)=>console.log(`Error ${err}`));
-
-// app.use(cors());
-// app.use('/api/admin',adminRoute);
-// app.use('/api/doctor',doctorRoute);
-
-// app.listen(port,()=>console.log(`Server running on ${port} 👍`));
-
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
@@ -41,8 +21,17 @@ const { EventEmitter } = require('events');
 const app = express();
 const port = process.env.PORT || 8000;
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/healthnexus7')
-  .then(() => console.log("Mongo connected successfully 👌"))
+const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) {
+  console.error('MONGODB_URI is not set');
+  process.exit(1);
+}
+
+mongoose.connect(mongoUri, {
+  dbName: process.env.DB_NAME || 'healthnexus7',
+  serverSelectionTimeoutMS: 30000
+})
+  .then(() => console.log('Mongo connected to DB:', mongoose.connection.db.databaseName, '👌'))
   .catch((err) => console.log(`Error: ${err}`));
 
 // Increase body parser limits to support base64 images
@@ -133,7 +122,3 @@ app.get('/health', (req, res) => {
 });
 
 app.listen(port, () => console.log(`Server running on ${port} 👍`));
-
-// curr mhbp ncre egtc
-// npm i nodemailer 
-

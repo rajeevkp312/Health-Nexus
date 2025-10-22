@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
 const doctorModel = require('./Model/doctorModel');
 
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+
 // Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/healthnexus7', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
+mongoose.connect(process.env.MONGODB_URI, {
+  dbName: process.env.DB_NAME || 'healthnexus7',
+  serverSelectionTimeoutMS: 30000
 });
 
 async function fixDoctorIndex() {

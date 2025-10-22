@@ -1,8 +1,13 @@
 const mongoose = require('mongoose');
 const doctorModel = require('./Model/doctorModel');
 
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+
 // Connect to MongoDB
-mongoose.connect('mongodb://127.0.0.1:27017/healthnexus7')
+mongoose.connect(process.env.MONGODB_URI, {
+  dbName: process.env.DB_NAME || 'healthnexus7',
+  serverSelectionTimeoutMS: 30000
+})
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.log(`Error: ${err}`));
 

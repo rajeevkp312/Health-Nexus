@@ -130,15 +130,15 @@ router.post('/chat', async (req, res) => {
       status: error.status,
       response: error.response?.data
     });
-    
-    // Use fallback response for any OpenAI error
-    console.log('OpenAI API failed, using fallback response for message:', message);
-    
+
+    const safeMessage = typeof req.body?.message === 'string' ? req.body.message : '';
+    console.log('OpenAI/OpenRouter API failed, using fallback response for message:', safeMessage);
+
     return res.json({
       success: true,
-      response: getFallbackResponse(message),
+      response: getFallbackResponse(safeMessage),
       fallback: true,
-      error_info: `OpenAI unavailable: ${error.message}`,
+      error_info: `LLM provider unavailable: ${error.message}`,
       timestamp: new Date().toISOString()
     });
   }

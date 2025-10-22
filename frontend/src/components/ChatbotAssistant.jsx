@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Calendar, UserSearch, FileText, Phone, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import axios from 'axios';
+import ReactMarkdown from 'react-markdown';
 
 export function ChatbotAssistant() {
   const [isOpen, setIsOpen] = useState(false);
@@ -98,12 +99,11 @@ export function ChatbotAssistant() {
         }
       } catch (error) {
         console.error('Error sending message:', error);
-        let errorMessage = "I'm sorry, I'm having trouble connecting right now. Please try again later.";
-        
-        if (error.response?.data?.fallbackResponse) {
-          errorMessage = error.response.data.fallbackResponse;
-        }
-        
+        let errorMessage =
+          error.response?.data?.response ||
+          error.response?.data?.fallbackResponse ||
+          "I'm sorry, I'm having trouble connecting right now. Please try again later.";
+
         addMessage(errorMessage, 'bot');
       } finally {
         setIsLoading(false);
@@ -184,9 +184,9 @@ export function ChatbotAssistant() {
     <div className="fixed bottom-6 right-6 z-50">
       {/* Chat Window */}
       {isOpen && (
-        <div className="mb-4 bg-white border border-gray-300 rounded-2xl shadow-lg w-80 max-h-96 flex flex-col">
+        <div className="mb-4 bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-lg w-80 max-h-96 flex flex-col">
           {/* Header */}
-          <div className="bg-gradient-to-r from-primary to-secondary p-4 text-white flex-shrink-0">
+          <div className="bg-gradient-to-r from-primary to-secondary p-4 text-white flex-shrink-0 rounded-t-2xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <div className="bg-white/20 rounded-full p-2 mr-3">
@@ -264,7 +264,11 @@ export function ChatbotAssistant() {
                             : 'bg-gray-100 text-gray-900 rounded-bl-sm'
                         }`}
                       >
-                        <p>{message.text}</p>
+                        {message.sender === 'bot' ? (
+                          <ReactMarkdown className="space-y-1">{message.text}</ReactMarkdown>
+                        ) : (
+                          <p>{message.text}</p>
+                        )}
                         <p className={`text-xs mt-1 ${
                           message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
                         }`}>
@@ -274,18 +278,18 @@ export function ChatbotAssistant() {
                     </div>
                   ))}
                   {isLoading && (
-                    <div className="flex justify-start">
-                      <div className="bg-gray-100 text-gray-900 rounded-lg rounded-bl-sm p-3 text-sm max-w-[80%]">
-                        <div className="flex items-center space-x-2">
-                          <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                          </div>
-                          <span className="text-xs text-gray-500">HealthBot is typing...</span>
+                  <div className="flex justify-start">
+                    <div className="bg-gray-100 text-gray-900 rounded-lg rounded-bl-sm p-3 text-sm max-w-[80%]">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                         </div>
+                        <span className="text-xs text-gray-500">HealthBot is typing...</span>
                       </div>
                     </div>
+                  </div>
                   )}
                   <div ref={messagesEndRef} />
                 </>

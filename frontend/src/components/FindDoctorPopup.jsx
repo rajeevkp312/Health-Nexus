@@ -255,8 +255,9 @@ export function FindDoctorPopup({ isOpen, onClose }) {
             </p>
             <Button
               onClick={onClose}
+              type="button"
               variant="outline"
-              className="border-gray-300 text-gray-700 hover:bg-gray-100 text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 ml-2"
+              className="border-gray-300 !bg-white !text-gray-700 hover:!bg-gray-100 hover:!text-gray-900 focus-visible:ring-2 focus-visible:ring-gray-300 text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 ml-2"
             >
               Close
             </Button>
