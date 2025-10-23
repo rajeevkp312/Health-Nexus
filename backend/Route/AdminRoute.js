@@ -602,9 +602,25 @@ adminRoute.put('/patient/:id', upload.single('image'), async (req, res) => {
 adminRoute.delete('/patient/:id', async (req, res) => {
   try {
     const id = req.params.id;
-    await patientModel.findByIdAndDelete(id);
-    res.json({ "msg": "Success" });
+    console.log('Attempting to delete patient with ID:', id);
+    
+    // Try to delete from both collections since patients can exist in either
+    const [legacyResult, userResult] = await Promise.all([
+      patientModel.findByIdAndDelete(id),
+      userModel.findOneAndDelete({ _id: id, role: 'patient' })
+    ]);
+    
+    const deleted = legacyResult || userResult;
+    
+    if (deleted) {
+      console.log('Patient deleted successfully:', deleted.email);
+      res.json({ "msg": "Success", "deletedFrom": legacyResult ? 'patientModel' : 'userModel' });
+    } else {
+      console.log('Patient not found with ID:', id);
+      res.status(404).json({ "msg": "Patient not found" });
+    }
   } catch (error) {
+    console.error('Error deleting patient:', error);
     res.status(500).json({ "msg": "Error deleting patient", "error": error.message });
   }
 });

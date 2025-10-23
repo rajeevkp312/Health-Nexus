@@ -222,7 +222,7 @@ export function ModernNewsManagement() {
   const handleDelete = async (newsId) => {
     if (window.confirm('Are you sure you want to delete this news article?')) {
       try {
-        const response = await axios.delete(`http://localhost:8000/api/news/${newsId}`);
+        const response = await axios.delete(`http://localhost:8000/api/admin/news/${newsId}`);
         if (response.data.msg === "Success") {
           setNews(news.filter(item => (item._id || item.id) !== newsId));
           alert('News deleted successfully!');

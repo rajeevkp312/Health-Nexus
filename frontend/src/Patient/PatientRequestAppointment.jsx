@@ -176,21 +176,69 @@ export function PatientRequestAppointment() {
     setSubmitting(true);
 
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
       const patient = JSON.parse(localStorage.getItem('patient') || '{}');
+      
+      // Validate required fields before sending
+      const patientId = patient._id || patient.id || user.id || user._id;
+      
+      if (!patientId) {
+        toast({
+          title: "Error",
+          description: "Patient ID not found. Please login again.",
+          variant: "destructive",
+          duration: 2000,
+        });
+        setSubmitting(false);
+        return;
+      }
+      
+      if (!formData.doctorId) {
+        toast({
+          title: "Missing Information",
+          description: "Please select a doctor.",
+          variant: "destructive",
+          duration: 2000,
+        });
+        setSubmitting(false);
+        return;
+      }
+      
+      if (!formData.date) {
+        toast({
+          title: "Missing Information",
+          description: "Please select an appointment date.",
+          variant: "destructive",
+          duration: 2000,
+        });
+        setSubmitting(false);
+        return;
+      }
+      
+      if (!formData.slot) {
+        toast({
+          title: "Missing Information",
+          description: "Please select a time slot.",
+          variant: "destructive",
+          duration: 2000,
+        });
+        setSubmitting(false);
+        return;
+      }
+      
       const selectedDoctor = doctors.find(d => d._id === formData.doctorId);
       
       const appointmentData = {
-        pid: patient._id || user.id,
+        pid: patientId,
         did: formData.doctorId,
         date: formData.date,
         time: formData.slot, // Map slot to time field
         slot: formData.slot,
         reason: formData.description || 'General Consultation',
         description: formData.description,
-        patientName: user.name || patient.name,
-        patientEmail: user.email || patient.email,
-        patientPhone: user.phone || patient.phone,
+        patientName: user.name || patient.name || 'Patient',
+        patientEmail: user.email || patient.email || '',
+        patientPhone: user.phone || patient.phone || '',
         // Add doctor snapshot to avoid N/A issues without populate
         doctorName: selectedDoctor?.name,
         specialty: selectedDoctor?.spe || selectedDoctor?.specialty
