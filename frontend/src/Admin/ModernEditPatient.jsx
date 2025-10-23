@@ -214,8 +214,15 @@ export function ModernEditPatient() {
       
       // Add all form fields to FormData
       Object.keys(formData).forEach(key => {
-        if (key === 'image' && formData[key]) {
-          formDataToSend.append(key, formData[key]);
+        if (key === 'image') {
+          // If new image uploaded, use it; otherwise preserve existing image path
+          if (formData[key]) {
+            formDataToSend.append(key, formData[key]);
+          } else if (formData.currentImagePath) {
+            // Preserve existing image by sending its path
+            formDataToSend.append('image', formData.currentImagePath);
+            console.log('Preserving existing patient image:', formData.currentImagePath);
+          }
         } else if (key !== 'currentImagePath' && formData[key] !== null && formData[key] !== '') {
           formDataToSend.append(key, formData[key]);
         }

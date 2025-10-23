@@ -173,13 +173,25 @@ doctorRoute.put('/:id',async(req,res)=>{
         console.log('Doctor Update - ID:', id);
         console.log('Doctor Update - Body:', req.body);
         
-        const doc=await doctorModel.findByIdAndUpdate(id, req.body, { new: true });
-        if (!doc) {
+        // Fetch existing doctor to preserve image if not in update
+        const existingDoc = await doctorModel.findById(id);
+        if (!existingDoc) {
             console.log('Doctor not found with ID:', id);
             return res.status(404).json({"msg": "Doctor not found"});
         }
         
+        // Prepare update data, preserving image if not provided
+        const updateData = { ...req.body };
+        if (!updateData.image && existingDoc.image) {
+            updateData.image = existingDoc.image;
+            console.log('Preserving existing image:', existingDoc.image?.substring(0, 50) + '...');
+        }
+        
+        const doc = await doctorModel.findByIdAndUpdate(id, updateData, { new: true });
+        
         console.log('Doctor updated successfully:', doc.name);
+        console.log('Image after update:', doc.image ? 'Present' : 'Missing');
+        
         // Emit activity (SSE): doctor profile updated
         try {
             const bus = req.app.get('activityBus');

@@ -175,8 +175,13 @@ export function ModernEditDoctor() {
             formDataToSend.append(key, formData[key]);
           }
         } else if (key === 'image') {
+          // If new image uploaded, use it; otherwise preserve existing image path
           if (formData[key]) {
             formDataToSend.append(key, formData[key]);
+          } else if (formData.currentImagePath) {
+            // Preserve existing image by sending its path
+            formDataToSend.append('image', formData.currentImagePath);
+            console.log('Preserving existing image:', formData.currentImagePath);
           }
         } else if (key !== 'currentImagePath' && formData[key] !== null && formData[key] !== '') {
           formDataToSend.append(key, formData[key]);

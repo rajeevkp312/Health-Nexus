@@ -449,20 +449,32 @@ adminRoute.get('/doctor/:id', async (req, res) => {
 adminRoute.put('/doctor/:id', upload.single('image'), async (req, res) => {
   try {
     const id = req.params.id;
+    
+    // Fetch existing doctor to preserve image if not in update
+    const existingDoctor = await doctorModel.findById(id);
+    if (!existingDoctor) {
+      return res.status(404).json({ "msg": "Doctor not found" });
+    }
+    
     const updateData = { ...req.body };
     
+    // Handle file upload
     if (req.file) {
       updateData.image = req.file.path;
+    } else if (!updateData.image && existingDoctor.image) {
+      // Preserve existing image if not uploading new file and no image in body
+      updateData.image = existingDoctor.image;
+      console.log('Admin route: Preserving existing doctor image');
     }
     
     const updatedDoctor = await doctorModel.findByIdAndUpdate(id, updateData, { new: true });
     
-    if (!updatedDoctor) {
-      return res.status(404).json({ "msg": "Doctor not found" });
-    }
+    console.log('Admin route: Doctor updated:', updatedDoctor.name);
+    console.log('Admin route: Image after update:', updatedDoctor.image ? 'Present' : 'Missing');
     
     res.json({ "msg": "Success", "doctor": updatedDoctor });
   } catch (error) {
+    console.error('Admin route: Error updating doctor:', error);
     res.status(500).json({ "msg": "Error updating doctor", "error": error.message });
   }
 });

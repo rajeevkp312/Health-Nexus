@@ -484,18 +484,29 @@ router.put('/profile/:id', async (req, res) => {
         // Remove password from update data for security
         delete updateData.password;
         
-        // Find and update user
-        const user = await User.findByIdAndUpdate(userId, updateData, { 
-            new: true,
-            runValidators: true 
-        }).select('-password');
-        
-        if (!user) {
+        // Fetch existing user to preserve image if not in update
+        const existingUser = await User.findById(userId);
+        if (!existingUser) {
             return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
         }
+        
+        // Preserve image if not provided in update
+        if (!updateData.image && existingUser.image) {
+            updateData.image = existingUser.image;
+            console.log('Preserving existing user image');
+        }
+        
+        // Find and update user
+        const user = await User.findByIdAndUpdate(userId, updateData, { 
+            new: true,
+            runValidators: true 
+        }).select('-password');
+
+        console.log('User profile updated:', user.name);
+        console.log('Image after update:', user.image ? 'Present' : 'Missing');
 
         res.status(200).json({
             success: true,
