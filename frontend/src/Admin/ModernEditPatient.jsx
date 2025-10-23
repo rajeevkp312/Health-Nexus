@@ -209,24 +209,21 @@ export function ModernEditPatient() {
     try {
       console.log('Form data before submission:', formData);
       
-      // Send as JSON instead of FormData for better error handling
-      const dataToSend = { ...formData };
+      // Use FormData to support file uploads
+      const formDataToSend = new FormData();
       
-      // Remove empty fields except for optional ones
-      Object.keys(dataToSend).forEach(key => {
-        if (dataToSend[key] === '' || dataToSend[key] === null) {
-          if (!['emergencyContact', 'medicalHistory', 'allergies', 'image'].includes(key)) {
-            delete dataToSend[key];
-          }
+      // Add all form fields to FormData
+      Object.keys(formData).forEach(key => {
+        if (key === 'image' && formData[key]) {
+          formDataToSend.append(key, formData[key]);
+        } else if (key !== 'currentImagePath' && formData[key] !== null && formData[key] !== '') {
+          formDataToSend.append(key, formData[key]);
         }
       });
-      
-      // Remove image for now since we're sending JSON
-      delete dataToSend.image;
 
-      const response = await axios.put(`http://localhost:8000/api/patient/${id}`, dataToSend, {
+      const response = await axios.put(`http://localhost:8000/api/admin/patient/${id}`, formDataToSend, {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'multipart/form-data'
         }
       });
 

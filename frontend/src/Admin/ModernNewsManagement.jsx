@@ -160,27 +160,28 @@ export function ModernNewsManagement() {
     e.preventDefault();
     
     try {
-      // Prepare data for submission (backend expects JSON, not FormData)
-      const dataToSend = {
-        title: formData.title,
-        content: formData.content,
-        category: formData.category,
-        author: formData.author,
-        status: formData.status
-      };
+      // Use FormData to support file uploads
+      const formDataToSend = new FormData();
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('content', formData.content);
+      formDataToSend.append('category', formData.category);
+      formDataToSend.append('author', formData.author);
+      formDataToSend.append('status', formData.status);
 
-      // Handle image upload separately if needed
+      // Add image if present
       if (formData.image) {
-        // For now, we'll skip image upload since backend doesn't handle file uploads
-        // You can implement file upload later if needed
-        console.log('Image upload not implemented yet');
+        formDataToSend.append('image', formData.image);
       }
 
       let response;
       if (editingNews) {
-        response = await axios.put(`http://localhost:8000/api/news/${editingNews._id || editingNews.id}`, dataToSend);
+        response = await axios.put(`http://localhost:8000/api/admin/news/${editingNews._id || editingNews.id}`, formDataToSend, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
       } else {
-        response = await axios.post('http://localhost:8000/api/news', dataToSend);
+        response = await axios.post('http://localhost:8000/api/admin/news', formDataToSend, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
       }
 
       if (response.data.msg === "Success") {

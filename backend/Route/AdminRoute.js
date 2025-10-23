@@ -518,7 +518,7 @@ adminRoute.get('/patients', async (req, res) => {
 });
 
 // Add new patient
-adminRoute.post('/add-patient', async (req, res) => {
+adminRoute.post('/add-patient', upload.single('image'), async (req, res) => {
   try {
     console.log('Received patient data:', req.body);
     
@@ -549,7 +549,12 @@ adminRoute.post('/add-patient', async (req, res) => {
       });
     }
     
-    const newPatient = await patientModel.create(req.body);
+    const patientData = {
+      ...req.body,
+      image: req.file ? req.file.path : null
+    };
+    
+    const newPatient = await patientModel.create(patientData);
     res.json({ "msg": "Success", "patient": newPatient });
   } catch (error) {
     console.error('Error adding patient:', error);
@@ -577,10 +582,16 @@ adminRoute.post('/add-patient', async (req, res) => {
 });
 
 // Update patient
-adminRoute.put('/patient/:id', async (req, res) => {
+adminRoute.put('/patient/:id', upload.single('image'), async (req, res) => {
   try {
     const id = req.params.id;
-    const updatedPatient = await patientModel.findByIdAndUpdate(id, req.body, { new: true });
+    const updateData = { ...req.body };
+    
+    if (req.file) {
+      updateData.image = req.file.path;
+    }
+    
+    const updatedPatient = await patientModel.findByIdAndUpdate(id, updateData, { new: true });
     res.json({ "msg": "Success", "patient": updatedPatient });
   } catch (error) {
     res.status(500).json({ "msg": "Error updating patient", "error": error.message });
