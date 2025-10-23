@@ -20,6 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { getImageUrl } from '../setupApiBase';
 
 export function ModernViewDoctors() {
   const navigate = useNavigate();
@@ -184,10 +185,7 @@ export function ModernViewDoctors() {
                     if (!raw) return fallback;
                     if (/^https?:\/\//i.test(raw)) return raw; // absolute URL
                     if (raw.startsWith('data:image/')) return raw; // base64
-                    const parts = raw.split(/[\\/]+/);
-                    const filename = parts[parts.length - 1];
-                    if (!filename) return fallback;
-                    return `http://localhost:8000/uploads/${filename}`;
+                    return getImageUrl(raw) || fallback;
                   } catch {
                     return `https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.name || 'Doctor')}&size=300&background=4f46e5&color=fff&bold=true`;
                   }

@@ -64,3 +64,25 @@ try {
 if (typeof window !== 'undefined') {
   window.__API_BASE__ = API_BASE;
 }
+
+// Utility function to construct image URLs with proper base URL
+export function getImageUrl(imagePath) {
+  if (!imagePath) return null;
+  
+  // If already a full URL, return as is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  
+  // Extract filename from path (handles both forward and backslashes)
+  const parts = imagePath.split(/[\\\/]+/);
+  const filename = parts[parts.length - 1];
+  if (!filename) return null;
+  
+  // Use production API base if available, otherwise localhost
+  const base = API_BASE || DEV_LOCAL;
+  return `${base}/uploads/${filename}`;
+}
+
+// Export API_BASE for use in other components
+export const API_BASE_URL = API_BASE || DEV_LOCAL;

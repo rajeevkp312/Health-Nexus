@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
+import { getImageUrl } from '../setupApiBase';
 
 function PatientSidenav() {
   const location = useLocation();
@@ -144,11 +145,7 @@ function PatientSidenav() {
     const raw = candidates[0].toString().trim();
     if (/^https?:\/\//i.test(raw)) return raw; // absolute URL
     if (raw.startsWith('data:image/')) return raw; // base64
-    // file path -> use filename under backend /uploads
-    const parts = raw.split(/[\\\/]+/);
-    const filename = parts[parts.length - 1];
-    if (!filename) return null;
-    return `http://localhost:8000/uploads/${filename}`;
+    return getImageUrl(raw);
   };
 
   const avatarSrc = getAvatarSrc(patientInfo);

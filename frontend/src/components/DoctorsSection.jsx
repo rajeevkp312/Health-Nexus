@@ -3,6 +3,7 @@ import { Calendar, Award, Clock, X, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import axios from 'axios';
 import { BookAppointmentPopup } from './BookAppointmentPopup';
+import { getImageUrl } from '../setupApiBase';
 
 export function DoctorsSection() {
   const [doctors, setDoctors] = useState([]);
@@ -166,10 +167,7 @@ export function DoctorsSection() {
                         if (!rawSrc) return fallback;
                         if (/^https?:\/\//i.test(rawSrc)) return rawSrc; // Absolute URL
                         if (rawSrc.startsWith('data:image/')) return rawSrc; // Base64
-                        const parts = rawSrc.split(/[\\/]+/);
-                        const filename = parts[parts.length - 1];
-                        if (!filename) return fallback;
-                        return `http://localhost:8000/uploads/${filename}`;
+                        return getImageUrl(rawSrc) || fallback;
                       } catch (error) {
                         console.error('Error constructing image URL:', error);
                         return `https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.name || 'Doctor')}&size=300&background=4f46e5&color=fff&bold=true`;
@@ -281,10 +279,7 @@ export function DoctorsSection() {
                             if (!rawSrc) return fallback;
                             if (/^https?:\/\//i.test(rawSrc)) return rawSrc; // Absolute URL
                             if (rawSrc.startsWith('data:image/')) return rawSrc; // Base64
-                            const parts = rawSrc.split(/[\\/]+/);
-                            const filename = parts[parts.length - 1];
-                            if (!filename) return fallback;
-                            return `http://localhost:8000/uploads/${filename}`;
+                            return getImageUrl(rawSrc) || fallback;
                           } catch (error) {
                             console.error('Error constructing modal image URL:', error);
                             return `https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.name || 'Doctor')}&size=300&background=4f46e5&color=fff&bold=true`;

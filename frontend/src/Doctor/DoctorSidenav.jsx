@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 import logo from '../assets/logo2.png';
+import { getImageUrl } from '../setupApiBase';
 
 function DoctorSidenav() {
   const location = useLocation();
@@ -111,16 +112,11 @@ function DoctorSidenav() {
 
   // Resolve avatar URL from image/profilePhoto and handle different formats
   const getAvatarSrc = (info) => {
-    if (!info) return null;
-    const raw = (info.image || info.profilePhoto || '').toString().trim();
+    const raw = (info?.image || info?.profilePhoto || '').toString().trim();
     if (!raw) return null;
-    if (/^https?:\/\//i.test(raw)) return raw; // absolute URL
-    if (raw.startsWith('data:image/')) return raw; // base64
-    // file path -> use filename under backend /uploads
-    const parts = raw.split(/[\\/]+/);
-    const filename = parts[parts.length - 1];
-    if (!filename) return null;
-    return `http://localhost:8000/uploads/${filename}`;
+    if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+    if (raw.startsWith('data:image/')) return raw;
+    return getImageUrl(raw);
   };
 
   const fetchPendingCount = async () => {
