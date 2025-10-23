@@ -16,6 +16,14 @@ const reportRoute = require('./Route/reportRoute');
 const editRoute = require('./Route/editRoute');
 
 const cors = require('cors');
+const fs = require('fs');
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('✅ Created uploads directory');
+}
 
 const { EventEmitter } = require('events');
 const app = express();
