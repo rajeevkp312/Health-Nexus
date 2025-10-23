@@ -39,6 +39,8 @@ export function DoctorsSection() {
       if (response.data.msg === "Success") {
         // Fix: API returns data in 'value' field, not 'doctors'
         const doctorsData = response.data.value || response.data.doctors || [];
+        console.log(`✅ Fetched ${doctorsData.length} doctors from API`);
+        
         // Deduplicate by email, BUT prefer the entry that has an image
         const byEmail = new Map();
         doctorsData.forEach((doc) => {
@@ -61,13 +63,14 @@ export function DoctorsSection() {
         });
         let uniqueDoctors = Array.from(byEmail.values());
 
-        // Patch in localStorage doctor photo immediately (helps when DB image isn't saved yet)
+        // Patch in localStorage doctor photo immediately (ensures logged-in doctor sees their own photo)
         try {
           const lsDoctor = JSON.parse(localStorage.getItem('doctor') || '{}');
           const lsUser = JSON.parse(localStorage.getItem('user') || '{}');
           const lsEmail = lsDoctor?.email || lsUser?.email;
           const lsPhoto = lsDoctor?.image || lsDoctor?.profilePhoto || lsUser?.profilePhoto || lsUser?.image;
           if (lsEmail && lsPhoto) {
+            console.log(`📸 Patching photo for logged-in doctor: ${lsEmail}`);
             uniqueDoctors = uniqueDoctors.map(d => (
               d.email === lsEmail ? { ...d, image: lsPhoto } : d
             ));
@@ -77,21 +80,14 @@ export function DoctorsSection() {
         }
         
         // Debug: Log image data for each doctor
-        uniqueDoctors.forEach(doctor => {
-          if (doctor.image) {
-            console.log(`Doctor ${doctor.name} - Image:`, 
-              doctor.image.startsWith('data:image/') ? 'Base64 Image' : 'File Path: ' + doctor.image
-            );
-          } else {
-            console.log(`Doctor ${doctor.name} - No Image`);
-          }
-        });
+        const withImages = uniqueDoctors.filter(d => d.image).length;
+        console.log(`📊 Doctors with images: ${withImages}/${uniqueDoctors.length}`);
         
         setAllDoctors(uniqueDoctors); // Store all doctors
         setDoctors(uniqueDoctors.slice(0, 4)); // Show only first 4 doctors
       }
     } catch (error) {
-      console.error('Error fetching doctors:', error);
+      console.error('❌ Error fetching doctors:', error);
       // Fallback to empty array if API fails
       setDoctors([]);
       setAllDoctors([]);

@@ -39,6 +39,7 @@ export function ModernEditDoctor() {
     bio: '',
     password: '',
     image: null,
+    imagePreview: null,
     currentImagePath: ''
   });
 
@@ -60,6 +61,8 @@ export function ModernEditDoctor() {
         const response = await axios.get(`http://localhost:8000/api/admin/doctor/${id}`);
         if (response.data.msg === "Success") {
           const doctor = response.data.doctor;
+          console.log('📥 Loading doctor data...', doctor.name);
+          console.log('🖼️ Doctor has image:', !!doctor.image);
           setFormData({
             name: doctor.name || '',
             email: doctor.email || '',
@@ -75,6 +78,7 @@ export function ModernEditDoctor() {
             bio: doctor.bio || '',
             password: doctor.password || '',
             image: null,
+            imagePreview: null,
             currentImagePath: doctor.image || ''
           });
         }
@@ -119,11 +123,29 @@ export function ModernEditDoctor() {
       return;
     }
     
-    console.log('File selected:', file.name, 'Size:', (file.size / 1024 / 1024).toFixed(2) + 'MB');
+    console.log('📸 File selected:', file.name, 'Size:', (file.size / 1024 / 1024).toFixed(2) + 'MB');
+    
+    // INSTANT preview with blob URL (temporary)
+    const blobUrl = URL.createObjectURL(file);
     setFormData(prev => ({
       ...prev,
-      image: file
+      image: file,
+      imagePreview: blobUrl // Show immediately
     }));
+    
+    // Convert to base64 for database storage (background process)
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      console.log('✅ Image converted to base64 for database');
+      setFormData(prev => ({
+        ...prev,
+        imagePreview: base64String // Replace blob with base64
+      }));
+      // Clean up blob URL to free memory
+      URL.revokeObjectURL(blobUrl);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleImageUpload = (e) => {
@@ -174,16 +196,20 @@ export function ModernEditDoctor() {
           if (formData[key] && formData[key].trim() !== '') {
             formDataToSend.append(key, formData[key]);
           }
-        } else if (key === 'image') {
-          // If new image uploaded, use it; otherwise preserve existing image path
-          if (formData[key]) {
-            formDataToSend.append(key, formData[key]);
-          } else if (formData.currentImagePath) {
-            // Preserve existing image by sending its path
-            formDataToSend.append('image', formData.currentImagePath);
-            console.log('Preserving existing image:', formData.currentImagePath);
+        } else if (key === 'imagePreview') {
+          // Send base64 image to database
+          if (formData.imagePreview) {
+            formDataToSend.append('image', formData.imagePreview);
+            console.log('📤 Sending new image to database (base64)');
           }
-        } else if (key !== 'currentImagePath' && formData[key] !== null && formData[key] !== '') {
+        } else if (key === 'image' || key === 'currentImagePath') {
+          // Skip these - we handle imagePreview above
+          if (key === 'currentImagePath' && !formData.imagePreview && formData.currentImagePath) {
+            // Preserve existing image if no new image uploaded
+            formDataToSend.append('image', formData.currentImagePath);
+            console.log('💾 Preserving existing image in database');
+          }
+        } else if (formData[key] !== null && formData[key] !== '') {
           formDataToSend.append(key, formData[key]);
         }
       });
@@ -258,22 +284,30 @@ export function ModernEditDoctor() {
                     onDrop={handleDrop}
                     onClick={triggerFileInput}
                   >
-                    {formData.image ? (
+                    {/* Priority: New preview > Current DB image > Placeholder */}
+                    {formData.imagePreview ? (
                       <img 
-                        src={URL.createObjectURL(formData.image)} 
+                        src={formData.imagePreview} 
                         alt="Preview" 
                         className="w-32 h-32 rounded-full object-cover"
                       />
                     ) : formData.currentImagePath ? (
-                      <img 
-                        src={getImageUrl(formData.currentImagePath) || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || 'Doctor')}&size=200&background=4f46e5&color=fff&bold=true`}
-                        alt="Current" 
-                        className="w-32 h-32 rounded-full object-cover"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'block';
-                        }}
-                      />
+                      formData.currentImagePath.startsWith('data:image/') ? (
+                        <img 
+                          src={formData.currentImagePath}
+                          alt="Current" 
+                          className="w-32 h-32 rounded-full object-cover"
+                        />
+                      ) : (
+                        <img 
+                          src={getImageUrl(formData.currentImagePath) || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || 'Doctor')}&size=200&background=4f46e5&color=fff&bold=true`}
+                          alt="Current" 
+                          className="w-32 h-32 rounded-full object-cover"
+                          onError={(e) => {
+                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || 'Doctor')}&size=200&background=4f46e5&color=fff&bold=true`;
+                          }}
+                        />
+                      )
                     ) : (
                       <div className="text-center">
                         <User className="h-16 w-16 text-gray-400 mx-auto mb-2" />

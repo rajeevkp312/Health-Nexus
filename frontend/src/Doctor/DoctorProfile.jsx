@@ -133,12 +133,25 @@ function DoctorProfile() {
   const handlePhotoUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
+      // Check file size (max 5MB for base64)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Please select an image smaller than 5MB.",
+          variant: "destructive",
+          duration: 3000,
+        });
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = async (e) => {
         const photoData = e.target.result;
         
         try {
-          // Update both edited info and current doctor info
+          console.log('📸 Uploading profile photo...');
+          
+          // Update edited info immediately for preview
           setEditedInfo(prev => ({
             ...prev,
             profilePhoto: photoData
@@ -153,11 +166,13 @@ function DoctorProfile() {
               image: photoData // Map profilePhoto to image for backend
             };
 
-            console.log('Auto-saving photo to database...');
+            console.log('💾 Saving photo to database...');
             const response = await axios.put(`http://localhost:8000/api/doctor/${doctorId}`, updateData);
             
             if (response.data.msg === "Success") {
-              console.log('Photo saved to database successfully');
+              const updatedDoctor = response.data.doctor;
+              console.log('✅ Photo saved to database successfully');
+              console.log('Database has image:', !!updatedDoctor?.image);
               
               // Update current doctor info state immediately
               setDoctorInfo(prev => ({
@@ -165,67 +180,51 @@ function DoctorProfile() {
                 profilePhoto: photoData
               }));
               
-              // Update localStorage after successful database save
+              // Store complete updated doctor data with image
+              if (updatedDoctor) {
+                const doctorToStore = {
+                  ...updatedDoctor,
+                  profilePhoto: updatedDoctor.image || photoData,
+                };
+                localStorage.setItem('doctor', JSON.stringify(doctorToStore));
+                console.log('✅ Photo cached in localStorage (doctor)');
+              }
+              
+              // Also update user object
               const user = JSON.parse(localStorage.getItem('user') || '{}');
               user.profilePhoto = photoData;
               localStorage.setItem('user', JSON.stringify(user));
-
-              // Cache the updated doctor from API if provided
-              if (response.data.doctor) {
-                const updatedDoc = response.data.doctor;
-                localStorage.setItem('doctor', JSON.stringify({ ...updatedDoc, profilePhoto: photoData }));
-              } else {
-                const doctor = JSON.parse(localStorage.getItem('doctor') || '{}');
-                localStorage.setItem('doctor', JSON.stringify({ ...doctor, profilePhoto: photoData, image: photoData }));
-              }
+              console.log('✅ Photo cached in localStorage (user)');
               
               // Trigger event to refresh doctors section on home page
               window.dispatchEvent(new CustomEvent('doctorProfileUpdated'));
               
               toast({
                 title: "Photo Updated! 📸",
-                description: "Your profile photo has been updated and saved to database.",
+                description: "Your profile photo has been saved successfully.",
                 duration: 2000,
               });
             } else {
               throw new Error('Failed to save photo to database');
             }
           } else {
-            // Fallback: save to localStorage only
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const doctor = JSON.parse(localStorage.getItem('doctor') || '{}');
-            user.profilePhoto = photoData;
-            localStorage.setItem('user', JSON.stringify(user));
-            if (doctor && Object.keys(doctor).length > 0) {
-              doctor.profilePhoto = photoData;
-              localStorage.setItem('doctor', JSON.stringify(doctor));
-            }
-            toast({
-              title: "Photo Updated! 📸",
-              description: "Your profile photo has been updated locally.",
-              duration: 2000,
-            });
+            throw new Error('Doctor ID not found');
           }
         } catch (error) {
-          console.error('Error saving photo:', error);
-          
-          // Fallback: save to localStorage only
-          const user = JSON.parse(localStorage.getItem('user') || '{}');
-          const doctor = JSON.parse(localStorage.getItem('doctor') || '{}');
-          
-          user.profilePhoto = photoData;
-          localStorage.setItem('user', JSON.stringify(user));
-          
-          if (doctor && Object.keys(doctor).length > 0) {
-            doctor.profilePhoto = photoData;
-            localStorage.setItem('doctor', JSON.stringify(doctor));
-          }
+          console.error('❌ Error saving photo:', error);
           
           toast({
-            title: "Photo Updated! 📸",
-            description: "Photo updated locally. Will sync to database on next save.",
-            duration: 2000,
+            title: "Upload Failed",
+            description: `Failed to save photo: ${error.message}`,
+            variant: "destructive",
+            duration: 3000,
           });
+          
+          // Revert the photo preview on error
+          setEditedInfo(prev => ({
+            ...prev,
+            profilePhoto: doctorInfo.profilePhoto
+          }));
         }
       };
       reader.readAsDataURL(file);
@@ -237,8 +236,7 @@ function DoctorProfile() {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       let doctor = JSON.parse(localStorage.getItem('doctor') || '{}');
 
-      console.log('Doctor Profile - User data:', user);
-      console.log('Doctor Profile - Doctor data (LS):', doctor);
+      console.log('Doctor Profile - Fetching profile data...');
 
       // Try to get fresh doctor doc from DB
       try {
@@ -247,15 +245,26 @@ function DoctorProfile() {
           const res = await axios.get(`http://localhost:8000/api/doctor/${id}`);
           if (res.data?.msg === 'Success' && res.data?.value) {
             doctor = res.data.value;
+            // Update localStorage with fresh data from DB
             localStorage.setItem('doctor', JSON.stringify(doctor));
+            console.log('✅ Fresh doctor data loaded from database');
           }
         }
       } catch (e) {
-        console.warn('Falling back to localStorage doctor:', e?.message || e);
+        console.warn('⚠️ Falling back to localStorage doctor:', e?.message || e);
       }
 
       const name = user?.name || doctor?.name || 'Doctor';
       const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=128&background=3b82f6&color=ffffff&bold=true`;
+
+      // Priority: doctor.image (from DB) > doctor.profilePhoto > user.profilePhoto > avatar
+      const profilePhoto = doctor?.image || doctor?.profilePhoto || user?.profilePhoto || null;
+      
+      if (profilePhoto) {
+        console.log('✅ Profile photo found:', profilePhoto.startsWith('data:image/') ? 'Base64 image' : 'Image path');
+      } else {
+        console.log('⚠️ No profile photo found, using avatar');
+      }
 
       const actualData = {
         name: name,
@@ -265,7 +274,7 @@ function DoctorProfile() {
         experience: doctor?.experience || doctor?.exp || '',
         qualification: doctor?.qualification || doctor?.qua || doctor?.degree || '',
         address: doctor?.address || '',
-        profilePhoto: doctor?.profilePhoto || doctor?.image || user?.profilePhoto || avatarUrl,
+        profilePhoto: profilePhoto || avatarUrl,
         licenseNumber: doctor?.number || doctor?.licenseNumber || '',
         department: doctor?.department || '',
         consultationFee: doctor?.consultationFee || '',
@@ -275,7 +284,7 @@ function DoctorProfile() {
       setDoctorInfo(actualData);
       setEditedInfo(actualData);
     } catch (error) {
-      console.error('Error fetching doctor profile:', error);
+      console.error('❌ Error fetching doctor profile:', error);
     } finally {
       setLoading(false);
     }
@@ -295,7 +304,7 @@ function DoctorProfile() {
         throw new Error('Doctor ID not found');
       }
 
-      // Prepare data for API call
+      // Prepare data for API call - ensure image is included
       const updateData = {
         name: editedInfo.name,
         email: editedInfo.email,
@@ -306,22 +315,45 @@ function DoctorProfile() {
         qualification: editedInfo.qualification,
         address: editedInfo.address,
         consultationFee: editedInfo.consultationFee,
-        image: editedInfo.profilePhoto // Map profilePhoto to image for backend
+        image: editedInfo.profilePhoto || '' // Always include image field, even if empty
       };
 
       // Debug logs
+      console.log('💾 Saving doctor profile...');
       console.log('Doctor ID:', doctorId);
-      console.log('Update Data:', updateData);
+      console.log('Has image:', !!updateData.image);
+      if (updateData.image) {
+        console.log('Image type:', updateData.image.startsWith('data:image/') ? 'Base64' : 'Path/URL');
+      }
       
       // Call API to update doctor in database
       const response = await axios.put(`http://localhost:8000/api/doctor/${doctorId}`, updateData);
       
       if (response.data.msg === "Success") {
+        // Get the updated doctor from response
+        const updatedDoctor = response.data.doctor;
+        
+        console.log('✅ Profile updated in database');
+        console.log('Updated doctor has image:', !!updatedDoctor?.image);
+        
         // Update local state
         setDoctorInfo(editedInfo);
         setIsEditing(false);
         
-        // Update localStorage with new data
+        // Update localStorage with complete data from API response
+        if (updatedDoctor) {
+          // Store complete doctor data with image
+          const doctorToStore = {
+            ...updatedDoctor,
+            profilePhoto: updatedDoctor.image, // Ensure profilePhoto field is set
+            specialty: updatedDoctor.specialty || editedInfo.specialization,
+            number: updatedDoctor.number ?? editedInfo.licenseNumber,
+          };
+          localStorage.setItem('doctor', JSON.stringify(doctorToStore));
+          console.log('✅ Doctor data cached in localStorage');
+        }
+        
+        // Also update user object in localStorage
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         const updatedUser = {
           ...user,
@@ -332,46 +364,24 @@ function DoctorProfile() {
         };
         localStorage.setItem('user', JSON.stringify(updatedUser));
         
-        // Cache the updated doctor from API if provided
-        if (response.data.doctor) {
-          // Ensure UI fields are available next load by normalizing
-          const d = response.data.doctor;
-          localStorage.setItem('doctor', JSON.stringify({
-            ...d,
-            specialty: d.specialty || editedInfo.specialization,
-            number: d.number ?? editedInfo.licenseNumber,
-          }));
-        } else {
-          const doctor = JSON.parse(localStorage.getItem('doctor') || '{}');
-          const updatedDoctor = {
-            ...doctor,
-            name: editedInfo.name,
-            email: editedInfo.email,
-            phone: editedInfo.phone,
-            specialty: editedInfo.specialization,
-            number: editedInfo.licenseNumber,
-            experience: editedInfo.experience,
-            qualification: editedInfo.qualification,
-            address: editedInfo.address,
-            image: editedInfo.profilePhoto,
-            consultationFee: editedInfo.consultationFee
-          };
-          localStorage.setItem('doctor', JSON.stringify(updatedDoctor));
-        }
-        
         toast({
           title: "Profile Updated! ✅",
-          description: "Your profile has been successfully updated in database and will reflect on home page.",
+          description: "Your profile has been successfully updated and will reflect everywhere.",
           duration: 2000,
         });
 
         // Trigger event to refresh doctors section on home page
         window.dispatchEvent(new CustomEvent('doctorProfileUpdated'));
+        
+        // Refresh the profile to ensure we have latest data
+        setTimeout(() => {
+          fetchDoctorProfile();
+        }, 500);
       } else {
         throw new Error('Failed to update profile in database');
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('❌ Error updating profile:', error);
       toast({
         title: "Update Failed",
         description: `Failed to save profile changes: ${error.message}`,

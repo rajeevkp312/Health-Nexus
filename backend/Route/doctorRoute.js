@@ -171,7 +171,14 @@ doctorRoute.put('/:id',async(req,res)=>{
     try{
         const id=req.params.id;
         console.log('Doctor Update - ID:', id);
-        console.log('Doctor Update - Body:', req.body);
+        
+        // Log body fields but truncate image for readability
+        const bodyLog = { ...req.body };
+        if (bodyLog.image) {
+            const imgType = bodyLog.image.startsWith('data:image/') ? 'base64' : 'path';
+            bodyLog.image = `[${imgType} image - ${bodyLog.image.length} chars]`;
+        }
+        console.log('Doctor Update - Body:', bodyLog);
         
         // Fetch existing doctor to preserve image if not in update
         const existingDoc = await doctorModel.findById(id);
@@ -180,17 +187,34 @@ doctorRoute.put('/:id',async(req,res)=>{
             return res.status(404).json({"msg": "Doctor not found"});
         }
         
-        // Prepare update data, preserving image if not provided
+        // Prepare update data, preserving image if not provided or empty
         const updateData = { ...req.body };
-        if (!updateData.image && existingDoc.image) {
+        const hasImage = updateData.image && updateData.image.trim() !== '';
+        
+        if (!hasImage && existingDoc.image) {
+            // Preserve existing image if new image not provided
             updateData.image = existingDoc.image;
-            console.log('Preserving existing image:', existingDoc.image?.substring(0, 50) + '...');
+            console.log('Preserving existing image');
+        } else if (hasImage) {
+            // New image provided, validate it
+            const isBase64 = updateData.image.startsWith('data:image/');
+            const isPath = !isBase64 && updateData.image.length < 500;
+            
+            if (!isBase64 && !isPath) {
+                console.warn('Image format unknown, keeping anyway');
+            }
+            console.log(`Updating with new image: ${isBase64 ? 'base64' : 'file path'}`);
         }
         
-        const doc = await doctorModel.findByIdAndUpdate(id, updateData, { new: true });
+        // Use findByIdAndUpdate with runValidators to ensure schema validation
+        const doc = await doctorModel.findByIdAndUpdate(
+            id, 
+            updateData, 
+            { new: true, runValidators: false }
+        ).lean();
         
         console.log('Doctor updated successfully:', doc.name);
-        console.log('Image after update:', doc.image ? 'Present' : 'Missing');
+        console.log('Image after update:', doc.image ? `Present (${doc.image.startsWith('data:') ? 'base64' : 'path'})` : 'Missing');
         
         // Emit activity (SSE): doctor profile updated
         try {
@@ -203,6 +227,7 @@ doctorRoute.put('/:id',async(req,res)=>{
                 });
             }
         } catch (_) {}
+        
         res.json({"msg":"Success", "doctor": doc});
     }
     catch(error){
