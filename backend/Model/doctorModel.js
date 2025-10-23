@@ -115,6 +115,7 @@ doctorSchema.pre('save', async function(next) {
     }
     next();
   } catch (err) {
+    console.error('Error in doctor pre-save hook:', err);
     next(err);
   }
 });

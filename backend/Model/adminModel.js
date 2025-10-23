@@ -38,6 +38,7 @@ adminSchema.pre('save', async function(next) {
     }
     next();
   } catch (err) {
+    console.error('Error in admin pre-save hook:', err);
     next(err);
   }
 });
@@ -53,6 +54,7 @@ adminSchema.pre('findOneAndUpdate', async function(next) {
     }
     next();
   } catch (err) {
+    console.error('Error in admin findOneAndUpdate hook:', err);
     next(err);
   }
 });

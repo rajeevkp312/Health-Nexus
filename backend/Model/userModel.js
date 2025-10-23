@@ -104,6 +104,7 @@ userSchema.pre('save', async function(next) {
         this.password = await bcrypt.hash(this.password, salt);
         next();
     } catch (error) {
+        console.error('Error in user pre-save hook:', error);
         next(error);
     }
 });

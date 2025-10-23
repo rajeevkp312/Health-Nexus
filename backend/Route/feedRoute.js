@@ -21,7 +21,8 @@ feedRoute.post('',async(req,res)=>{
     }
 
     catch (error){
-        res.json({"msg":error})
+        console.error('Error creating feedback:', error);
+        res.status(500).json({"msg": "Error creating feedback", "error": error.message})
     }
 });
 
@@ -33,7 +34,8 @@ feedRoute.get('/doctor/:did', async (req, res) => {
         const feed = await feedModel.find({ did }).sort({ createdAt: -1 }).lean();
         res.json({ msg: 'Success', value: feed });
     }catch(error){
-        res.json({ msg: error });
+        console.error('Error fetching doctor feedback:', error);
+        res.status(500).json({ msg: "Error fetching feedback", error: error.message });
     }
 });
 
@@ -55,7 +57,8 @@ feedRoute.put('/:id',async(req,res)=>{
     }
 
     catch (error){
-        res.json({"msg":error})
+        console.error('Error updating feedback:', error);
+        res.status(500).json({"msg": "Error updating feedback", "error": error.message})
     }
 });
 
@@ -67,7 +70,8 @@ feedRoute.get('/user/:id',async(req,res)=>{
     }
 
     catch (error){
-        res.json({"msg":error})
+        console.error('Error fetching user feedback:', error);
+        res.status(500).json({"msg": "Error fetching feedback", "error": error.message})
     }
 });
 
@@ -79,7 +83,8 @@ feedRoute.delete('/:id',async(req,res)=>{
     }
 
     catch (error){
-        res.json({"msg":error})
+        console.error('Error deleting feedback:', error);
+        res.status(500).json({"msg": "Error deleting feedback", "error": error.message})
     }
 });
 
@@ -92,7 +97,8 @@ feedRoute.get('',async(req,res)=>{
     }
 
     catch (error){
-        res.json({"msg":error})
+        console.error('Error fetching all feedback:', error);
+        res.status(500).json({"msg": "Error fetching feedback", "error": error.message})
     }
 });
 

@@ -9,7 +9,8 @@ newsRoute.get('',async(req,res)=>{
     }
 
     catch (error){
-        res.json({"msg":error})
+        console.error('Error fetching news:', error);
+        res.status(500).json({"msg": "Error fetching news", "error": error.message})
     }
 });
 
@@ -31,7 +32,8 @@ newsRoute.post('',async(req,res)=>{
     }
 
     catch (error){
-        res.json({"msg":error})
+        console.error('Error creating news:', error);
+        res.status(500).json({"msg": "Error creating news", "error": error.message})
     }
 });
 
@@ -52,7 +54,8 @@ newsRoute.put('/:id',async(req,res)=>{
     }
 
     catch (error){
-        res.json({"msg":error})
+        console.error('Error updating news:', error);
+        res.status(500).json({"msg": "Error updating news", "error": error.message})
     }
 });
 
@@ -64,7 +67,8 @@ newsRoute.delete('/:id',async(req,res)=>{
     }
 
     catch (error){
-        res.json({"msg":error})
+        console.error('Error deleting news:', error);
+        res.status(500).json({"msg": "Error deleting news", "error": error.message})
     }
 });
 

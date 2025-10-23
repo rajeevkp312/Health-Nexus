@@ -230,31 +230,97 @@ const sendMail=async(to,sub,msg)=>{
 patientRoute.post('/log', async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log(req.body);
-    console.log(ad);
-    if (!ad) {
+    console.log('Patient login attempt:', { email });
+    
+    const patient = await patientModel.findOne({ email });
+    
+    if (!patient) {
       return res.json({ "msg": "not found" });
+    }
+    
+    const bcrypt = require('bcryptjs');
+    const stored = patient.password || '';
+    const looksHashed = typeof stored === 'string' && stored.startsWith('$2');
+    let valid = false;
+
+    if (looksHashed) {
+      valid = await bcrypt.compare(password, stored);
     } else {
-      if (ad.password === password) {
-        return res.json({ "msg": "Success","id":ad._id });
-      } else {
-        return res.json({ "msg": "Invalid password" });
+      // Plaintext legacy. Compare directly, then migrate to hashed on success
+      valid = stored === password;
+      if (valid) {
+        try {
+          const salt = await bcrypt.genSalt(10);
+          patient.password = await bcrypt.hash(password, salt);
+          await patient.save();
+        } catch (merr) {
+          console.warn('Patient password migration failed:', merr?.message);
+        }
       }
     }
+
+    if (!valid) {
+      return res.json({ "msg": "Invalid password" });
+    }
+    return res.json({ "msg": "Success", "id": patient._id });
+    
   } catch (error) {
-    console.error("Login error:", error);
-    return res.status(500).json({ "msg": "Server error" });
+    console.error("Patient login error:", error);
+    return res.status(500).json({ "msg": "Server error", "error": error.message });
   }
 });
 
 
 patientRoute.post('',async(req,res)=>{
     try{
-        await patientModel.create(req.body);
+        // Validate required fields
+        const required = ['name', 'email', 'phone', 'gender', 'age', 'bloodGroup', 'address'];
+        const missing = required.filter(f => !req.body[f] || String(req.body[f]).trim() === '');
+        
+        if (missing.length) {
+            console.error('Missing required fields:', missing);
+            return res.status(400).json({ 
+                "msg": "Validation failed", 
+                "error": `Missing required fields: ${missing.join(', ')}`,
+                "missingFields": missing 
+            });
+        }
+
+        // Check for duplicate email
+        const existingPatient = await patientModel.findOne({ email: req.body.email });
+        if (existingPatient) {
+            console.error('Duplicate email:', req.body.email);
+            return res.status(400).json({ 
+                "msg": "Patient already exists", 
+                "error": "A patient with this email already exists"
+            });
+        }
+
+        const newPatient = await patientModel.create(req.body);
         sendMail(req.body.email,"Registeration Success",`Welcome to Health Nexus🙋🙋\n Hello ${req.body.name},\n Your Registeration was successfull \n Thank You for Joining HealthNexus`)
-        res.json({"msg":"Success"})
+        res.json({"msg":"Success", "patient": newPatient})
     }catch(error){
-        res.json({"msg":error})
+        console.error('Error creating patient:', error);
+        
+        // Handle MongoDB duplicate key error
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyPattern || {})[0] || 'field';
+            return res.status(400).json({ 
+                "msg": "Duplicate entry", 
+                "error": `A patient with this ${field} already exists`
+            });
+        }
+        
+        // Handle validation errors
+        if (error.name === 'ValidationError') {
+            const validationErrors = Object.values(error.errors).map(e => e.message);
+            return res.status(400).json({ 
+                "msg": "Validation failed", 
+                "error": validationErrors.join(', ')
+            });
+        }
+        
+        res.status(500).json({"msg": "Error creating patient", "error": error.message})
     }
 })
 

@@ -364,14 +364,67 @@ adminRoute.post('/reset-password', async (req, res) => {
 // Add new doctor
 adminRoute.post('/add-doctor', upload.single('image'), async (req, res) => {
   try {
+    // Validate required fields
+    const required = ['name', 'email', 'phone', 'qualification', 'experience', 'specialty'];
+    const missing = required.filter(f => !req.body[f] || String(req.body[f]).trim() === '');
+    
+    if (missing.length) {
+      console.error('Missing required fields:', missing);
+      return res.status(400).json({ 
+        "msg": "Validation failed", 
+        "error": `Missing required fields: ${missing.join(', ')}`,
+        "missingFields": missing 
+      });
+    }
+
+    // Check for duplicate email or phone
+    const existingDoctor = await doctorModel.findOne({
+      $or: [{ email: req.body.email }, { phone: req.body.phone }]
+    });
+
+    if (existingDoctor) {
+      const duplicateField = existingDoctor.email === req.body.email ? 'email' : 'phone';
+      console.error(`Duplicate ${duplicateField}:`, req.body[duplicateField]);
+      return res.status(400).json({ 
+        "msg": "Doctor already exists", 
+        "error": `A doctor with this ${duplicateField} already exists`,
+        "duplicateField": duplicateField
+      });
+    }
+
     const doctorData = {
       ...req.body,
       image: req.file ? req.file.path : null
     };
     
+    console.log('Creating doctor with data:', { ...doctorData, password: '***' });
     const newDoctor = await doctorModel.create(doctorData);
+    console.log('Doctor created successfully:', newDoctor._id);
+    
     res.json({ "msg": "Success", "doctor": newDoctor });
   } catch (error) {
+    console.error('Error adding doctor:', error);
+    
+    // Handle MongoDB duplicate key error
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0] || 'field';
+      return res.status(400).json({ 
+        "msg": "Duplicate entry", 
+        "error": `A doctor with this ${field} already exists`,
+        "duplicateField": field
+      });
+    }
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(e => e.message);
+      return res.status(400).json({ 
+        "msg": "Validation failed", 
+        "error": validationErrors.join(', '),
+        "validationErrors": validationErrors
+      });
+    }
+    
     res.status(500).json({ "msg": "Error adding doctor", "error": error.message });
   }
 });
