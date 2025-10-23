@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { getImageUrl } from '../setupApiBase';
 
 export function ModernEditDoctor() {
   const navigate = useNavigate();
@@ -260,7 +261,7 @@ export function ModernEditDoctor() {
                       />
                     ) : formData.currentImagePath ? (
                       <img 
-                        src={`http://localhost:8000/${formData.currentImagePath.replace(/\\/g, '/')}`}
+                        src={getImageUrl(formData.currentImagePath) || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || 'Doctor')}&size=200&background=4f46e5&color=fff&bold=true`}
                         alt="Current" 
                         className="w-32 h-32 rounded-full object-cover"
                         onError={(e) => {
