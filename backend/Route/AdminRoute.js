@@ -48,7 +48,9 @@ const nodemailer = require('nodemailer');
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/')
+    // Use absolute path to ensure files go to correct location
+    const uploadsPath = path.join(__dirname, '..', 'uploads');
+    cb(null, uploadsPath);
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname))
@@ -394,12 +396,14 @@ adminRoute.post('/add-doctor', upload.single('image'), async (req, res) => {
 
     const doctorData = {
       ...req.body,
-      image: req.file ? req.file.path : null
+      image: req.file ? req.file.filename : null  // Store only filename, not full path
     };
     
     console.log('Creating doctor with data:', { ...doctorData, password: '***' });
+    console.log('Image filename:', req.file ? req.file.filename : 'No image');
     const newDoctor = await doctorModel.create(doctorData);
     console.log('Doctor created successfully:', newDoctor._id);
+    console.log('Image stored as:', newDoctor.image);
     
     res.json({ "msg": "Success", "doctor": newDoctor });
   } catch (error) {
@@ -460,7 +464,8 @@ adminRoute.put('/doctor/:id', upload.single('image'), async (req, res) => {
     
     // Handle file upload
     if (req.file) {
-      updateData.image = req.file.path;
+      updateData.image = req.file.filename;  // Store only filename, not full path
+      console.log('Admin route: New image uploaded:', req.file.filename);
     } else if (!updateData.image && existingDoctor.image) {
       // Preserve existing image if not uploading new file and no image in body
       updateData.image = existingDoctor.image;
@@ -563,7 +568,7 @@ adminRoute.post('/add-patient', upload.single('image'), async (req, res) => {
     
     const patientData = {
       ...req.body,
-      image: req.file ? req.file.path : null
+      image: req.file ? req.file.filename : null  // Store only filename
     };
     
     const newPatient = await patientModel.create(patientData);
@@ -600,7 +605,7 @@ adminRoute.put('/patient/:id', upload.single('image'), async (req, res) => {
     const updateData = { ...req.body };
     
     if (req.file) {
-      updateData.image = req.file.path;
+      updateData.image = req.file.filename;  // Store only filename
     }
     
     const updatedPatient = await patientModel.findByIdAndUpdate(id, updateData, { new: true });
@@ -685,7 +690,7 @@ adminRoute.post('/news', upload.single('image'), async (req, res) => {
   try {
     const newsData = {
       ...req.body,
-      image: req.file ? req.file.path : null,
+      image: req.file ? req.file.filename : null,  // Store only filename
       publishDate: new Date()
     };
     
@@ -703,7 +708,7 @@ adminRoute.put('/news/:id', upload.single('image'), async (req, res) => {
     const updateData = { ...req.body };
     
     if (req.file) {
-      updateData.image = req.file.path;
+      updateData.image = req.file.filename;  // Store only filename
     }
     
     const updatedNews = await newsModel.findByIdAndUpdate(id, updateData, { new: true });

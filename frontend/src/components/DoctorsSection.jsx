@@ -170,17 +170,16 @@ export function DoctorsSection() {
                       }
                     })()}
                     alt={doctor.name}
-                    className="w-full h-48 object-contain bg-white group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-48 object-cover bg-white group-hover:scale-110 transition-transform duration-500"
                     onError={(e) => {
-                      console.log('Image failed to load:', e.target.src);
-                      console.log('Doctor image data:', doctor.image || doctor.profilePhoto);
+                      console.log('❌ Image failed to load:', e.target.src);
+                      console.log('Doctor:', doctor.name, '| Image data:', doctor.image?.substring(0, 100));
                       if (!e.target.dataset.fallbackAttempted) {
                         e.target.dataset.fallbackAttempted = 'true';
+                        // Use ui-avatars as fallback
                         e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.name)}&size=300&background=0ea5e9&color=fff&bold=true`;
-                      } else if (!e.target.dataset.secondFallback) {
-                        e.target.dataset.secondFallback = 'true';
-                        e.target.src = `https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&h=400&fit=crop&crop=face`;
                       } else {
+                        // Final fallback - hide image and show initials
                         e.target.style.display = 'none';
                         const initialsDiv = e.target.nextElementSibling;
                         if (initialsDiv && initialsDiv.classList.contains('doctor-initials')) {

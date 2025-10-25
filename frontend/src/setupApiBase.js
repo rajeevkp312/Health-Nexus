@@ -74,8 +74,15 @@ export function getImageUrl(imagePath) {
     return imagePath;
   }
   
+  // If it's a base64 image, return as is
+  if (imagePath.startsWith('data:image/')) {
+    return imagePath;
+  }
+  
   // Extract filename from path (handles both forward and backslashes)
-  const parts = imagePath.split(/[\\\/]+/);
+  // Remove 'uploads/' or 'uploads\' prefix if present
+  let cleanPath = imagePath.replace(/^uploads[\\\/]/, '');
+  const parts = cleanPath.split(/[\\\/]+/);
   const filename = parts[parts.length - 1];
   if (!filename) return null;
   
