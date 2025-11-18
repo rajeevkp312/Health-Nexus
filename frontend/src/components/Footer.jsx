@@ -204,7 +204,7 @@ export function Footer() {
             {/* Copyright */}
             <div className="text-center md:text-right">
               <div className="flex items-center justify-center md:justify-end text-gray-900">
-                <span>© 2025 HealthNexus. Made By Rajeev Kuamr Pandit </span>
+                <span> 2025 HealthNexus. Made By Rajeev Kumar Pandit </span>
                 <Heart className="h-4 w-4 text-red-500 mx-1" />
                 <span> for better healthcare.</span>
               </div>
