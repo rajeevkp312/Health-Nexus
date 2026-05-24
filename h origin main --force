@@ -1,0 +1,18 @@
+[33mae98944[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Fix: persistent doctor photos - Store only filenames for uploads (doctors/patients/news) - Absolute uploads path (multer) - Robust getImageUrl and image fallbacks - DB cleanup script for broken image paths
+[33m38ce3ec[m 🔧 Fix: Complete profile photo persistence solution
+[33mff9a790[m fix: profile photo persistence issue for doctors and patients
+[33mf0efa2e[m Fix: Patient delete bug and appointment validation - Delete from both patientModel and userModel - Add frontend validation for appointments - Fix news delete endpoint consistency
+[33mc596940[m Fix: ModernEditDoctor image display with getImageUrl
+[33mb959069[m Fix: Image display URLs for production deployment - Add getImageUrl utility to handle dev and production URLs - Fix all hardcoded localhost:8000/uploads references - Images now work in both local and Vercel/Render deployments - Fixes Mixed Content errors on HTTPS sites
+[33m3c20c43[m Fix: Complete file upload support for all admin portals - Add multer support to patient add/edit endpoints - Fix frontend to send images via FormData - Fix news management to use admin endpoints - Ensure uploads directory is created on startup
+[33m2ce4de6[m Fix: Create uploads directory on startup to prevent ENOENT errors
+[33md1115f6[m Fix validation and error handling improvements
+[33mb30fa7b[m add Vercel routing config for SPA
+[33m19f9548[m use SendGrid HTTP API instead of SMTP
+[33m9cce319[m fix SMTP port 587
+[33m61ae4b1[m fix: fast Gmail SMTP with instant OTP delivery
+[33m50e5206[m fix(frontend): route API calls to VITE_API_BASE_URL in prod (fetch+axios rewrite)
+[33ma60c7a5[m fix(frontend): use Vite asset imports for logos and hero backgrounds (works on Vercel)
+[33mf8caa0e[m fix(frontend): case-sensitive import paths (pages to Pages) for Vercel build; fix(chatbot): safe fallback to avoid 500
+[33m5d8fcec[m rkp creation
+[33m6fedd2f[m init
